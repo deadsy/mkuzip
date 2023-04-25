@@ -30,7 +30,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/types.h>
 #include <err.h>
 #include <inttypes.h>
-#include <md5.h>
+#include <openssl/md5.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <strings.h>
@@ -98,9 +98,9 @@ compute_digest(struct mkuz_blk *bp)
 {
     MD5_CTX mcontext;
 
-    MD5Init(&mcontext);
-    MD5Update(&mcontext, bp->data, bp->info.len);
-    MD5Final(bp->info.digest, &mcontext);
+    MD5_Init(&mcontext);
+    MD5_Update(&mcontext, bp->data, bp->info.len);
+    MD5_Final(bp->info.digest, &mcontext);
 }
 
 struct mkuz_conveyor *

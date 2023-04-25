@@ -1,3 +1,4 @@
+# makefile for the FreeBSD mkuzip utility compiled for Linux.
 
 OUTPUT = mkuzip
 
@@ -18,9 +19,9 @@ OBJ = $(patsubst %.c, %.o, $(SRC))
 CFLAGS = -Wall -Werror -Wextra -Wstrict-prototypes
 CFLAGS += -O2
 
-INCLUDE = -I./bsd
-
 DEFINE = -D'__FBSDID(x)='
+
+LIBS = -lcrypto -lpthread -lz -llzma -lzstd
 
 .c.o:
 	gcc $(INCLUDE) $(DEFINE) $(CFLAGS) -c $< -o $@
@@ -30,4 +31,4 @@ all: $(OBJ)
 
 clean:
 	-rm $(OBJ)
-
+	-rm $(OUTPUT)
