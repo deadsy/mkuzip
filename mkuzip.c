@@ -26,13 +26,13 @@
  * SUCH DAMAGE.
  */
 
+#define _GNU_SOURCE
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
-#include <sys/endian.h>
 #include <sys/param.h>
-#include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <sys/uio.h>
 #include <netinet/in.h>
@@ -63,6 +63,10 @@ __FBSDID("$FreeBSD$");
 #include "mkuz_insize.h"
 
 #define DEFAULT_CLSTSIZE	16384
+
+#define MAXPHYS (1024*1024)
+
+size_t strlcpy(char *dst, const char *src, size_t siz);
 
 enum UZ_ALGORITHM {
 	UZ_ZLIB = 0,
@@ -128,17 +132,16 @@ int main(int argc, char **argv)
 	uint64_t offset, last_offset;
 	struct cloop_header hdr;
 	struct mkuz_conveyor *cvp;
-        void *c_ctx;
 	struct mkuz_blk_info *chit;
-	size_t ncpusz, ncpu, magiclen;
+	size_t magiclen;
+	long ncpu;
 	double st, et;
 	enum UZ_ALGORITHM comp_alg;
 	int comp_level;
 
 	st = getdtime();
 
-	ncpusz = sizeof(size_t);
-	if (sysctlbyname("hw.ncpu", &ncpu, &ncpusz, NULL, 0) < 0) {
+	if ((ncpu = sysconf(_SC_NPROCESSORS_ONLN)) < 0) {
 		ncpu = 1;
 	} else if (ncpu > MAX_WORKERS_AUTO) {
 		ncpu = MAX_WORKERS_AUTO;
@@ -255,12 +258,13 @@ int main(int argc, char **argv)
 		errx(1, "maximal compressed cluster size %zu greater than MAXPHYS %zu",
 		    cfs.cbound_blksz, (size_t)MAXPHYS);
 
-	c_ctx = cfs.handler->f_init(&comp_level);
+	cfs.handler->f_init(&comp_level);
 	cfs.comp_level = comp_level;
 
 	cfs.iname = argv[0];
 	if (oname == NULL) {
-		asprintf(&oname, "%s%s", cfs.iname, cfs.handler->default_sufx);
+		int rc = asprintf(&oname, "%s%s", cfs.iname, cfs.handler->default_sufx);
+		(void)rc;
 		if (oname == NULL) {
 			err(1, "can't allocate memory");
 			/* Not reached */
