@@ -27,7 +27,14 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include <sys/statfs.h>
+#ifdef __APPLE__
+#include <sys/stat.h>
+#endif
+
+#ifdef __linux__
+#include <sys/fstat.h>
+#endif
+
 #include <sys/ioctl.h>
 #include <sys/param.h>
 #include <sys/mount.h>
@@ -39,10 +46,36 @@ __FBSDID("$FreeBSD$");
 #include "mkuz_cfg.h"
 #include "mkuz_insize.h"
 
+#if defined(__APPLE__)
+
+#include <sys/disk.h>
+
+int blkgetsize(int fd, uint64_t *psize) {
+  unsigned long blocksize = 0;
+  int ret = ioctl(fd, DKIOCGETBLOCKSIZE, &blocksize);
+  if (!ret) {
+    unsigned long nblocks;
+    ret = ioctl(fd, DKIOCGETBLOCKCOUNT, &nblocks);
+    if (!ret)
+      *psize = (uint64_t)nblocks * blocksize;
+  }
+  return ret;
+}
+
+#elif #defined(__linux__)
+
+int blkgetsize(int fd, uint64_t *psize) {
+  return ioctl(fd, BLKGETSIZE64, psize);
+}
+
+#else
+#error "need a blkgetsize() for this target"
+#endif
+
 off_t
 mkuz_get_insize(struct mkuz_cfg *cfp)
 {
-	off_t ms;
+	uint64_t ms;
 	struct stat sb;
 
 	if (fstat(cfp->fdr, &sb) != 0) {
@@ -50,11 +83,11 @@ mkuz_get_insize(struct mkuz_cfg *cfp)
 		return (-1);
 	}
 	if (S_ISCHR(sb.st_mode)) {
-		if (ioctl(cfp->fdr, BLKGETSIZE64, &ms) < 0) {
-			warn("ioctl(BLKGETSIZE64)");
+		if (blkgetsize(cfp->fdr, &ms) < 0) {
+			warn("blkgetsize()");
 			return (-1);
 		}
-		sb.st_size = ms;
+		sb.st_size = (off_t)ms;
 	} else if (!S_ISREG(sb.st_mode)) {
 		warnx("%s: not a character device or regular file\n",
 			cfp->iname);
