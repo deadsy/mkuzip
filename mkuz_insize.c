@@ -32,7 +32,8 @@ __FBSDID("$FreeBSD$");
 #endif
 
 #ifdef __linux__
-#include <sys/fstat.h>
+#include <sys/statfs.h>
+#include <stdint.h>
 #endif
 
 #include <sys/ioctl.h>
@@ -62,14 +63,14 @@ int blkgetsize(int fd, uint64_t *psize) {
   return ret;
 }
 
-#elif #defined(__linux__)
+#elif defined(__linux__)
 
 int blkgetsize(int fd, uint64_t *psize) {
   return ioctl(fd, BLKGETSIZE64, psize);
 }
 
 #else
-#error "need a blkgetsize() for this target"
+#error "need a blkgetsize() for this platform"
 #endif
 
 off_t
