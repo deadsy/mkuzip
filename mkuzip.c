@@ -62,11 +62,19 @@ __FBSDID("$FreeBSD$");
 #include "mkuz_time.h"
 #include "mkuz_insize.h"
 
+size_t x_strlcpy(char *dst, const char *src, size_t siz);
+
+#ifdef __APPLE__
+#include <libkern/OSByteOrder.h>
+#define htobe64(x) OSSwapHostToBigInt64(x)
+#define be64toh(x) OSSwapBigToHostInt64(x)
+#endif
+
 #define DEFAULT_CLSTSIZE	16384
 
+#ifndef MAXPHYS
 #define MAXPHYS (1024*1024)
-
-size_t strlcpy(char *dst, const char *src, size_t siz);
+#endif
 
 enum UZ_ALGORITHM {
 	UZ_ZLIB = 0,
@@ -236,7 +244,7 @@ int main(int argc, char **argv)
 
 	cfs.handler = &uzip_fmts[comp_alg];
 
-	magiclen = strlcpy(hdr.magic, cfs.handler->magic, sizeof(hdr.magic));
+	magiclen = x_strlcpy(hdr.magic, cfs.handler->magic, sizeof(hdr.magic));
 	assert(magiclen < sizeof(hdr.magic));
 
 	if (cfs.en_dedup != 0) {
@@ -325,7 +333,7 @@ int main(int argc, char **argv)
 
 	if (cfs.verbose != 0) {
 		fprintf(stderr, "data size %ju bytes, number of clusters "
-		    "%u, index length %zu bytes\n", cfs.isize,
+		    "%u, index length %zu bytes\n", (uintmax_t)cfs.isize,
 		    hdr.nblocks, iov[1].iov_len);
 	}
 
@@ -407,7 +415,7 @@ drain:
 	if (cfs.verbose != 0 || summary.en != 0) {
 		et = getdtime();
 		fprintf(summary.f, "compressed data to %ju bytes, saved %lld "
-		    "bytes, %.2f%% decrease, %.2f bytes/sec.\n", offset,
+		    "bytes, %.2f%% decrease, %.2f bytes/sec.\n", (uintmax_t)offset,
 		    (long long)(cfs.isize - offset),
 		    100.0 * (long long)(cfs.isize - offset) /
 		    (float)cfs.isize, (float)cfs.isize / (et - st));
