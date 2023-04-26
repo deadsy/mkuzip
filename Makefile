@@ -17,10 +17,14 @@ SRC = mkuz_blk.c \
 
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
+INCLUDE = -I/opt/homebrew/include
+
 CFLAGS = -Wall -Werror -Wextra -Wstrict-prototypes
 CFLAGS += -O2
 
 DEFINE = -D'__FBSDID(x)='
+
+LDFLAGS = -L/opt/homebrew/lib
 
 LIBS = -lpthread -lz -llzma -lzstd
 
