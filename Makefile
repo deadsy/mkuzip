@@ -17,16 +17,19 @@ SRC = mkuz_blk.c \
 
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
-INCLUDE = -I/opt/homebrew/include
-
 CFLAGS = -Wall -Werror -Wextra -Wstrict-prototypes
 CFLAGS += -O2
 
 DEFINE = -D'__FBSDID(x)='
 
-LDFLAGS = -L/opt/homebrew/lib
-
 LIBS = -lpthread -lz -llzma -lzstd
+
+# MacOS include/library paths
+HOMEBREW = /opt/homebrew
+ifneq "$(wildcard $(HOMEBREW))" ""
+  INCLUDE += -I$(HOMEBREW)/include
+  LDFLAGS += -L$(HOMEBREW)/lib
+endif
 
 .c.o:
 	gcc $(INCLUDE) $(DEFINE) $(CFLAGS) -c $< -o $@
