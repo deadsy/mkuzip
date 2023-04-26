@@ -13,6 +13,7 @@ SRC = mkuz_blk.c \
 	mkuz_zlib.c \
 	mkuz_zstd.c \
 	strlcpy.c \
+	md5.c \
 
 OBJ = $(patsubst %.c, %.o, $(SRC))
 
@@ -21,7 +22,7 @@ CFLAGS += -O2
 
 DEFINE = -D'__FBSDID(x)='
 
-LIBS = -lcrypto -lpthread -lz -llzma -lzstd
+LIBS = -lpthread -lz -llzma -lzstd
 
 .c.o:
 	gcc $(INCLUDE) $(DEFINE) $(CFLAGS) -c $< -o $@
