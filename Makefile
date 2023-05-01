@@ -1,4 +1,4 @@
-# makefile for the FreeBSD mkuzip utility compiled for Linux.
+# Makefile for the FreeBSD mkuzip utility compiled for Linux and MacOS.
 
 OUTPUT = mkuzip
 
@@ -34,9 +34,15 @@ endif
 .c.o:
 	gcc $(INCLUDE) $(DEFINE) $(CFLAGS) -c $< -o $@
 
+.PHONY: all
 all: $(OBJ)
 	gcc $(CFLAGS) $(LDFLAGS) $(OBJ) $(LIBS) -o $(OUTPUT)
 
+.PHONY: install
+install: $(OUTPUT)
+	cp $(OUTPUT) /usr/local/bin
+
+.PHONY: clean
 clean:
 	-rm $(OBJ)
 	-rm $(OUTPUT)
