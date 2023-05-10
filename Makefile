@@ -31,6 +31,13 @@ ifneq "$(wildcard $(HOMEBREW))" ""
   LDFLAGS += -L$(HOMEBREW)/lib
 endif
 
+# user installed include/library paths
+LOCAL = $(HOME)/usr/local
+ifneq "$(wildcard $(LOCAL))" ""
+  INCLUDE += -I$(LOCAL)/include
+  LDFLAGS += -L$(LOCAL)/lib
+endif
+
 .c.o:
 	gcc $(INCLUDE) $(DEFINE) $(CFLAGS) -c $< -o $@
 
